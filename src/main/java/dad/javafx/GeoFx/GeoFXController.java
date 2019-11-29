@@ -1,14 +1,18 @@
 package dad.javafx.GeoFx;
+
 import java.io.IOException;
 
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -20,6 +24,7 @@ import java.util.ResourceBundle;
 import com.sun.javafx.binding.SelectBinding.AsBoolean;
 
 import dad.javafx.GeoFx.client.GeoFXService;
+import dad.javafx.client.messages.IPAPIMessage;
 import dad.javafx.client.messages.Security;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -154,31 +159,33 @@ public class GeoFXController implements Initializable {
 
 	@FXML
 	private Button ipButton;
-	
-	//model
-	
+
+	// model
+
 	private GeoFXService service = new GeoFXService();
 	private GeoFXModel model = new GeoFXModel();
+	Task<Void> tarea;
+	IPAPIMessage message;
 
 	public GeoFXController() throws IOException {
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/GeoFXView.fxml"));
 		loader.setController(this);
 		loader.load();
 	}
-	
-	public BorderPane getView(){
+
+	public BorderPane getView() {
 		return root;
 	}
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		
-		//binds
-		
+
+		// binds
+
 		ipTextField.textProperty().bindBidirectional(model.ipProperty());
-		
-		//BINDS DEL PRIMER TAB
-		
+
+		// BINDS DEL PRIMER TAB
+
 		latitudeLabel.textProperty().bind(model.latitudeProperty());
 		longitudeLabel.textProperty().bind(model.longitudeProperty());
 		locationLabel.textProperty().bind(model.locationProperty());
@@ -189,124 +196,109 @@ public class GeoFXController implements Initializable {
 		timeLabel.textProperty().bind(model.timezoneProperty());
 		callingLabel.textProperty().bind(model.callingcodeProperty());
 		currencyLabel.textProperty().bind(model.currencyProperty());
-		
-		//BINDS DEL SEGUNDO TAB
-		
+
+		// BINDS DEL SEGUNDO TAB
+
 		ipaddressLabel.textProperty().bind(model.ipadressProperty());
 		ispLabel.textProperty().bind(model.ISPProperty());
 		typeLabel.textProperty().bind(model.typeProperty());
 		asnLabel.textProperty().bind(model.ASNProperty());
 		hostnameLabel.textProperty().bind(model.hostnameProperty());
-		
-		
-		//BINDS DEL TERCER TAB
-		
+
+		// BINDS DEL TERCER TAB
+
 		safeLabel.textProperty().bind(model.safeProperty());
 		proxyCheckbox.selectedProperty().bind(model.proxyProperty());
 		torCheckbox.selectedProperty().bind(model.torProperty());
 		crawlerCheckbox.selectedProperty().bind(model.crawlerProperty());
 		threatLabel.textProperty().bind(model.threatlevelProperty());
 		threattypeLabel.textProperty().bind(model.threattypesProperty());
-		
-		
-		
-		root.sceneProperty().addListener((o,ov,nv) -> {
+
+		root.sceneProperty().addListener((o, ov, nv) -> {
 			model.setIp(service.getPropiaIP());
 		});
 	}
-    
-    @FXML
-    void onCheckIPAction(ActionEvent event) {
-    	service.setMessage(model.getIp());
-    	 	
-    	//First Tab
-    	model.setLatitude(service.getLatitude()+"");
-    	model.setLongitude(service.getLongitude()+"");
-    	model.setLocation(service.getIPLocation());
-    	model.setFlag(new Image(getClass().getResourceAsStream("/Flags/"+service.getCountryCode()+".png")));
-    	model.setCity(service.getCity());
-    	model.setZipcode(service.getZipCode());
-    	model.setLanguage(service.getLanguage());
-    	try {
-    		model.setTimezone(service.getTimeZone());
-		} catch (NullPointerException e) {
-			model.setTimezone("You need a major subscription");
-		}
-    	//model.setTimezone("WET");
-    	model.setCallingcode(service.getCallingCode());
-    	try {
-    		model.setCurrency(service.getCurrency());
-		} catch (NullPointerException e) {
-			model.setCurrency("You need a major subscription");
-		}
-    	
-    	//model.setCurrency("Euro(€)");
-    	
-    	//Second tab
-    	
-    	model.setIpadress(service.getIpAdress());
-    	try {
-    		model.setISP(service.getISP());
-		} catch (NullPointerException e) {
-			model.setISP("You need a major subscription");
-		}
-    	
-    	//model.setISP("Entidad pública empresarial red.es");
-    	model.setType(service.getType());
-    	
-    	try {
-    		model.setASN(service.getASN()+"");
-		} catch (Exception e) {
-			model.setASN("You need a major subscription");
-		}
-    	
-    	//model.setASN("766");
-    	
-    	model.setHostname(service.getHostname());
-    	//model.setHostname("ruperta.acuentas.rcanaria.es");
-    	
-    	//third tab
-    	
-    	try {
-			if(service.getThreatlevel().equals("low")) {
-				model.setSafe("This IP is safe. No threats have been detected.");
-			}else {
-				model.setSafe("This IP is not safe. Threats have been detected.");
-			}
-		} catch (NullPointerException e) {
-			model.setSafe("You need a major subscription");
-		}
-    	
-    	try {
-			model.setThreatlevel(service.getThreatlevel());
-		} catch (NullPointerException e) {
-			model.setThreatlevel("You need a major subscription");
-		}
-    	
-    	try {
-			model.setProxy(service.getProxy());
-		} catch (NullPointerException e) {
-		}
-    	
-    	try {
-			model.setTor(service.getTor());
-		} catch (NullPointerException e) {
-		}
-    	try {
-			model.setCrawler(service.getCrawler());
-		} catch (NullPointerException e) {
-		}
-    	try {
-			if(service.getThreatTypes()==null) {
-				model.setThreattypes("No threats have been detected for this IP addres");
-			}else {
-				model.setThreattypes(service.getThreatTypes().toString());
-			}
-		} catch (NullPointerException e) {
-			model.setThreattypes("You need a major subscription");
-		}
-    	
-    }
- 
+
+	@FXML
+	void onCheckIPAction(ActionEvent event) {
+	
+		tarea = new Task<Void>() {
+
+			@Override
+			protected Void call() throws Exception {
+				message = service.getMessage(model.getIp());
+				return null;	
+				}		
+			};
+			tarea.setOnSucceeded(e->{
+				
+				// First Tab
+				model.setLatitude(message.getLatitude() + "");
+				model.setLongitude(message.getLongitude() + "");
+				model.setLocation(message.getCountryName() + "(" + message.getCountryCode() + ")");
+				model.setFlag(new Image(getClass().getResourceAsStream("/Flags/" + message.getCountryCode() + ".png")));
+				model.setCity(message.getCity());
+				model.setZipcode(message.getZip());
+				model.setLanguage(message.getLocation().getLanguages().get(0).getName() + "(" + message.getLocation().getLanguages().get(0).getCode().toUpperCase()+")");
+				model.setTimezone(message.getTimeZone() != null ? message.getTimeZone().getCode() : "You need a major subscription");
+				model.setCallingcode("+"+message.getLocation().getCallingCode());
+				model.setCurrency(message.getCurrency() != null ? message.getCurrency().getName() + "(" + message.getCurrency().getSymbol() + ")" : "You need a major subscription");
+
+				// Second tab
+
+				model.setIpadress(message.getIp());
+				
+				model.setISP(message.getConnection() != null ? message.getConnection().getIsp() : "You need a major subscription");
+
+				model.setType(message.getType());
+				
+				model.setASN(message.getConnection() != null ? message.getConnection().getAsn().toString() : "You need a major subscription");
+
+				model.setHostname(message.getHostname());
+
+				// third tab
+
+				if (message.getSecurity() == null) {
+					model.setSafe("You need a major subscription");
+				} else {
+					if (message.getSecurity().getThreatLevel().equals("low")) {
+						model.setSafe("This IP is safe. No threats have been detected.");
+					} else {
+						model.setSafe("This IP is not safe. Threats have been detected.");
+					}
+				}
+				
+				model.setThreatlevel(message.getSecurity() != null ? message.getSecurity().getThreatLevel()  : "You need a major subscription");
+				
+				
+				model.setProxy(message.getSecurity() != null ? message.getSecurity().getIsProxy() : false);
+				
+				model.setTor(message.getSecurity() != null ? message.getSecurity().getIsTor() : false);
+				
+				model.setCrawler(message.getSecurity() != null ? message.getSecurity().getIsCrawler() : false);
+					
+				if (message.getSecurity() == null) {
+					model.setThreattypes("You need a major subscription");
+				} else {
+					if (message.getSecurity().getThreatTypes()!=null) {
+						model.setThreattypes("No threats have been detected for this IP address");
+					} else {
+						model.setThreattypes("Threats have been detected for this IP address");
+					}
+				}
+				
+			});
+			
+			tarea.setOnFailed(e->{
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("GeoFX");
+				alert.setHeaderText("No se pudo hacer la conexión");
+				alert.setContentText(e.getSource().getException().getMessage());
+				alert.showAndWait();
+			});
+			new Thread(tarea).start();
+
+
+	}
 
 }
